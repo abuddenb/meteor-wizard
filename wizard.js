@@ -93,7 +93,7 @@ Template.wizard.events({
     if (this.wizard.route) {
       // go to clicked step
       var rp = _.extend(this.wizard.routeParams, {step: clickedStep.id});
-      Router.go(this.wizard.route, rp);
+      FlowRouter.go(this.wizard.route, rp);
       return;
     }
 
@@ -135,7 +135,9 @@ Wizard.prototype = {
       self._initStep(step);
     });
 
-    Tracker.autorun(function() {
+    self.watchRouteComp = Tracker.autorun(function() {
+      FlowRouter.watchPathChange();
+
       self._setActiveStep();
     });
   },
@@ -175,32 +177,35 @@ Wizard.prototype = {
   },
 
   _setActiveStep: function() {
-    if (this.route && !Router.current()) {
+    var self = this;
+
+    if (self.route && !FlowRouter.current()) {
       return;
     }
 
     // show the first step if not bound to a route
-    if (!this.route) {
-      return this.show(0);
+    if (!self.route) {
+      return self.show(0);
     }
 
-    var current = Router.current();
+    var current = FlowRouter.current();
 
-    if (!current || (current && current.route.getName() != this.route)) return false;
+    if (!current || (current && current.route.name != self.route)) return false;
     var params = current.params,
-      index = _.indexOf(this._stepsByIndex, params.step),
-      previousStep = this.getStep(index - 1);
+        index = _.indexOf(self._stepsByIndex, params.step),
+        previousStep = self.getStep(index - 1);
 
     // initial route or non existing step, redirect to first step
     if (!params.step || index === -1) {
-      return this.show(0);
+      return self.show(0);
     }
     // invalid step
-    if (index > 0 && previousStep && !previousStep.data() && this.editMode !== true) {
-      return this.show(0);
+    if (index > 0 && previousStep && !previousStep.data() && self.editMode !== true) {
+      return self.show(0);
     }
     // valid
-    this.setStep(params.step);
+    self.setStep(params.step);
+
   },
 
   setData: function(id, data) {
@@ -247,7 +252,7 @@ Wizard.prototype = {
 
     if (this.route) {
       var rp = _.extend(this.routeParams, {step: id});
-      Router.go(this.route, rp);
+      FlowRouter.go(this.route, rp);
     } else {
       this.setStep(id);
     }
@@ -294,6 +299,8 @@ Wizard.prototype = {
   },
 
   destroy: function() {
+    //Stopping URL tracking computation on wizard destroy to prevent multiple instances of the wizard causing an infinite loop
+    this.watchRouteComp.stop();
     if (this.clearOnDestroy) this.clearData();
   }
 };
