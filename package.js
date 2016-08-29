@@ -14,9 +14,9 @@ Package.onUse(function(api) {
 	'ui', 
 	'session',
   ], 'client');
-  api.use('aldeed:autoform@5.1.2');
-  api.use('aldeed:simple-schema@1.3.3', ['client', 'server']);
-  api.use('u2622:persistent-session@0.3.5');
+  api.use('aldeed:autoform');
+  api.use('aldeed:simple-schema', ['client', 'server']);
+  api.use('u2622:persistent-session');
   api.imply(['aldeed:simple-schema']);
   
   api.addFiles([
